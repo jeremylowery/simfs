@@ -1,0 +1,34 @@
+DIV.file {
+    display: inline-block;
+    width: 30%;
+    margin: 0 12px 12px 12px;
+    vertical-align: top; 
+    text-wrap: no-wrap;
+}
+DIV.file:HOVER {
+    background-color: #EFEFFE;
+}
+DIV.file i.fa {
+    display: block;
+    float: left;
+    font-size: 48px;
+    margin-right: 12px;
+}
+DIV.file i.fa-file-code-o { color: gray; }
+DIV.file i.fa-file-pdf-o { color: red; }
+DIV.file i.fa-file-excel-o { color: green; }
+DIV.fname {
+  text-overflow: ellipsis;
+  max-width: 350px;
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: bold;
+}
+
+@media screen and (max-width: 620px) {
+    DIV.file {
+        display: block;
+        width: 100%;
+        margin-bottom: 24px;
+    }
+}

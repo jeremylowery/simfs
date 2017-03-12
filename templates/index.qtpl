@@ -1,0 +1,66 @@
+{% code
+
+type FileInfo struct {
+    Name string
+    FaIcon string
+    Size string
+}
+
+  type IndexPage struct {
+    Path string
+    Files []FileInfo
+    ShowUploadForm bool
+  }
+%}
+
+{% func (p *IndexPage) Title() %}
+    {%s p.Path %} {%d len(p.Files)%} Files
+{% endfunc %}
+
+{% func (p *IndexPage) Header() %}
+    <i class="fa fa-folder-open-o" aria-hidden="true"></i> {%s p.Path %} {%d len(p.Files)%} Files
+{% endfunc %}
+
+{% func (p *IndexPage) Body() %}
+<div class="container">
+  {% if p.ShowUploadForm %}
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+      <input type="file" name="f" >
+      <input type="submit" value="Upload">
+  </form>
+  {% endif %}
+  <br>
+  {% if len(p.Files) > 0 %}
+    {% for _, i := range p.Files %}
+        <div class='file'>
+          <a href='/download/{%s i.Name %}'>
+         <i class="fa {%s i.FaIcon %}" aria-hidden="true"></i>
+          <div class="fname">{%s i.Name %}</div>
+          <div>{%s i.Size %}</div>
+          </a>
+        </div>
+    {% endfor %}
+  {% endif %}
+</div>
+<link rel="stylesheet" type="text/css" 
+      href="https://code.jquery.com/ui/1.12.1/themes/pepper-grinder/jquery-ui.css">
+
+<link rel="stylesheet" type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/css/ui.jqgrid.css">
+{% endfunc %}
+
+{% func (p *IndexPage) JavaScript() %}
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+          integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+          crossorigin="anonymous"></script> 
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/js/i18n/grid.locale-en.js">
+          </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/js/jquery.jqGrid.min.js">
+          </script>
+
+  <script>
+    $(function() {
+    });
+  </script>
+{% endfunc %}
