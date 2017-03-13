@@ -25,6 +25,13 @@ DIV.fname {
   font-weight: bold;
 }
 
+A.delete {
+    color: red;
+    font-size: 24px;
+    text-align: left;
+    display: block;
+    margin-top: 10px;
+}
 @media screen and (max-width: 620px) {
     DIV.file {
         display: block;

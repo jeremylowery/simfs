@@ -24,20 +24,28 @@ type FileInfo struct {
 {% func (p *IndexPage) Body() %}
 <div class="container">
   {% if p.ShowUploadForm %}
-  <form action="/upload" method="POST" enctype="multipart/form-data">
-      <input type="file" name="f" >
-      <input type="submit" value="Upload">
-  </form>
+    <div class="panel panel-default">
+        <div class="panel-heading">Upload File</div>
+        <div class="panel-body">
+          <form action="/upload" method="POST" enctype="multipart/form-data">
+              <input type="file" name="f"  style="display: inline">
+              <input type="submit" value="Upload" class="btn btn-default">
+          </form>
+        </div>
+    </div>
   {% endif %}
   <br>
   {% if len(p.Files) > 0 %}
     {% for _, i := range p.Files %}
         <div class='file'>
           <a href='/download/{%s i.Name %}'>
-         <i class="fa {%s i.FaIcon %}" aria-hidden="true"></i>
-          <div class="fname">{%s i.Name %}</div>
-          <div>{%s i.Size %}</div>
+            <i class="fa {%s i.FaIcon %}" aria-hidden="true"></i>
+            <div class="fname">{%s i.Name %}</div>
+            <div>{%s i.Size %}</div>
           </a>
+          {% if p.ShowUploadForm %}
+            <a class="fa fa-trash delete" href='/delete/{%s i.Name %}'></a>
+          {% endif %}
         </div>
     {% endfor %}
   {% endif %}
@@ -61,6 +69,13 @@ type FileInfo struct {
 
   <script>
     $(function() {
+          $("A.delete").click(onDeleteClick);
     });
+
+    function onDeleteClick(e) {
+        if(!confirm("Are you sure you wish to delete this file?")) {
+            e.preventDefault();
+        }
+    }
   </script>
 {% endfunc %}

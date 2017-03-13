@@ -92,6 +92,7 @@ func main() {
 	r.HandleFunc("/", use(indexHandler, basicAuth))
 	r.HandleFunc("/upload", use(uploadHandler, basicAuth))
 	r.HandleFunc("/download/{name}", use(downloadHandler, basicAuth))
+	r.HandleFunc("/delete/{name}", use(deleteHandler, basicAuth))
 	r.PathPrefix("/css/").Handler(http.FileServer(box))
 	r.PathPrefix("/img/").Handler(http.FileServer(box))
 	r.PathPrefix("/js/").Handler(http.FileServer(box))
@@ -185,6 +186,28 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 	io.Copy(f, file)
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func deleteHandler(w http.ResponseWriter, r *http.Request) {
+	if readOnly(r) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("FORBIDDEN"))
+		return
+	}
+	vars := mux.Vars(r)
+	fname, ok := vars["name"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("No name"))
+		return
+	}
+
+	err := os.Remove(pubDir + "/" + fname)
+	if err != nil {
+		templates.WriteError(w, err)
+		return
+	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
