@@ -27,10 +27,37 @@ type FileInfo struct {
     <div class="panel panel-default">
         <div class="panel-heading">Upload File</div>
         <div class="panel-body">
-          <form action="/upload" method="POST" enctype="multipart/form-data">
-              <input type="file" name="f"  style="display: inline">
-              <input type="submit" value="Upload" class="btn btn-default">
+          <form action="/upload" method="POST" enctype="multipart/form-data" id="upload">
+            <div class="row">
+                <div class="col-md-10">
+                  <div class="form-inline">
+                    <div class="form-group">
+                      <div class="input-group">
+                          <label class="input-group-btn">
+                              <span class="btn btn-primary">
+                                  Browse&hellip; <input name="f" type="file" style="display: none;" multiple>
+                              </span>
+                          </label>
+                          <input type="text" class="form-control" readonly>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <input type="submit" value="Upload" class="btn btn-default">
+                      <input type="button" id="cancel" value="Cancel" class="btn btn-danger">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-2 text-right" style="height: 70px">
+                  <i id="upload-spinner" class="fa fa-spin hidden"></i>
+                </div>
+             </div>
           </form>
+
+          <div class="progress" style="margin-top: 20px">
+            <div id="progressbar" class="progress-bar progress-bar-striped active" role="progressbar"
+                  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                  style="width: 0%;">0%</div>
+          </div>
         </div>
     </div>
   {% endif %}
@@ -44,7 +71,9 @@ type FileInfo struct {
             <div>{%s i.Size %}</div>
           </a>
           {% if p.ShowUploadForm %}
-            <a class="fa fa-trash delete" href='/delete/{%s i.Name %}'></a>
+            <div class="toolbar">
+              <a class="fa fa-trash delete" href='/delete/{%s i.Name %}'></a>
+            </div>
           {% endif %}
         </div>
     {% endfor %}
@@ -67,15 +96,5 @@ type FileInfo struct {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/js/jquery.jqGrid.min.js">
           </script>
 
-  <script>
-    $(function() {
-          $("A.delete").click(onDeleteClick);
-    });
-
-    function onDeleteClick(e) {
-        if(!confirm("Are you sure you wish to delete this file?")) {
-            e.preventDefault();
-        }
-    }
-  </script>
+  <script src="/js/main.js"></script>
 {% endfunc %}

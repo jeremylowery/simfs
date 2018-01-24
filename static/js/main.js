@@ -1,6 +1,7 @@
 
 var otitle = document.title;
 var xhr;
+var aborting = false;
 
 $(function() {
   $("A.delete").click(onDeleteClick);
@@ -8,7 +9,6 @@ $(function() {
   $('#cancel').on('click', onCancelClick);
   $(document).on('change', ':file', onFileChange);
   $(':file').on('fileselect', onFileSelect);
-
 });
 
 function onDeleteClick(e) {
@@ -21,6 +21,9 @@ function onUploadSubmit(event) {
     event.preventDefault();
     var $f = $(this);
     var formData = new FormData($f[0]);
+    $('#progressbar').addClass("active");
+    $('#upload-spinner').removeClass("hidden");
+    aborting = false;
     $.ajax({
         xhr : uploadXHR,
         type : 'POST',
@@ -48,24 +51,39 @@ function onUploadProgress(e) {
     setProgressBar(percent);
 }
 
-function onUploadError(jqXHR, textStatus, errorThrown) {
-    document.title = otitle;
-    setProgressBar(0);
-    var msg = "An error occured during the upload. Please try again. " + errorThrown;
+function onUploadError(xhr, textStatus, errorThrown) {
+    resetUploadUI();
+    if(aborting) {
+        return;
+    } 
+    var msg = "An error occured during the upload. Please try again. "
+            + xhr.statusText + ":" + errorThrown;
     alert(msg);
-    xhr = null;
 }
 
 function onUploadSuccess() {
     xhr = null;
+    $('#progressbar').removeClass("active");
     document.location = "/";
 }
 
-
 function onCancelClick() {
-    if(xhr.abort !== undefined) {
-        xhr.abort();
+    aborting = true;
+    if(!xhr) {
+        return;
     }
+    if(xhr.abort === undefined) {
+        return;
+    }
+    xhr.abort();
+}
+
+function resetUploadUI() {
+    document.title = otitle;
+    setProgressBar(0);
+    $('#progressbar').removeClass("active");
+    $("#upload-spinner").addClass("hidden");
+    xhr = null;
 }
 
 function setProgressBar(percent) {
@@ -73,7 +91,6 @@ function setProgressBar(percent) {
     var width = percent + '%';
     $p.attr('aria-valuenow', percent).css('width', width).text(width);
 }
-
  
 function onFileChange() {
     var input = $(this),
@@ -81,7 +98,6 @@ function onFileChange() {
         label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
     input.trigger('fileselect', [numFiles, label]);
 }
-
 
 function onFileSelect(event, numFiles, label) {
     var input = $(this).parents('.input-group').find(':text'),

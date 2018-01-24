@@ -1,6 +1,7 @@
 DIV.file {
     display: inline-block;
     width: 30%;
+    height: 84px;
     margin: 0 12px 12px 12px;
     vertical-align: top; 
     text-wrap: no-wrap;
@@ -16,7 +17,24 @@ DIV.file i.fa {
 }
 DIV.file i.fa-file-code-o { color: gray; }
 DIV.file i.fa-file-pdf-o { color: red; }
+DIV.file i.fa-file-image-o { color: red; }
 DIV.file i.fa-file-excel-o { color: green; }
+
+#upload-spinner {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #337ab7; /* Blue */
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
 DIV.fname {
   text-overflow: ellipsis;
   max-width: 350px;
@@ -25,13 +43,17 @@ DIV.fname {
   font-weight: bold;
 }
 
-A.delete {
-    color: red;
+DIV.toolbar {
+    color: black;
     font-size: 24px;
-    text-align: left;
-    display: block;
-    margin-top: 10px;
+    text-align: right;
+    display: none;
+    padding: 10px;
 }
+
+DIV.file:hover DIV.toolbar, DIV.file.hover DIV.toolbar { display: block; }
+
+
 @media screen and (max-width: 620px) {
     DIV.file {
         display: block;

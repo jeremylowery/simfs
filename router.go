@@ -9,10 +9,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/GeertJohan/go.rice"
@@ -30,7 +32,9 @@ var readWriteUser = os.Getenv("RWUSER")
 var roContext = roContextKey("ReadOnly")
 var fileRE *regexp.Regexp
 var pubDir string
-var maxUpload int64 = 32 << 20
+
+// 16 Megs
+var maxMemory int64 = 2 << 23
 
 var faIconMap = map[string]string{
 	".asf":  "fa-file-video-o",
@@ -40,12 +44,15 @@ var faIconMap = map[string]string{
 	".doc":  "fa-file-word-o",
 	".docx": "fa-file-word-o",
 	".flv":  "fa-file-video-o",
+	".gif":  "fa-file-image-o",
 	".go":   "fa-file-code-o",
 	".gz":   "fa-file-archive-o",
 	".htm":  "fa-file-code-o",
 	".html": "fa-file-code-o",
 	".java": "fa-file-code-o",
 	".js":   "fa-file-code-o",
+	".jpeg": "fa-file-image-o",
+	".jpg":  "fa-file-image-o",
 	".mp3":  "fa-file-audio-o",
 	".mp4":  "fa-file-video-o",
 	".mpg":  "fa-file-video-o",
@@ -76,10 +83,10 @@ func init() {
 		}
 	}
 
-	if mu := os.Getenv("MAXUPLOAD"); mu != "" {
+	if mu := os.Getenv("MAXMEM"); mu != "" {
 		mi, err := strconv.Atoi(mu)
 		if err != nil {
-			maxUpload = int64(mi)
+			maxMemory = int64(mi)
 		}
 	}
 
@@ -100,10 +107,20 @@ func main() {
 	srv := &http.Server{
 		Handler:      r1,
 		Addr:         serverAddress(),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second}
+		WriteTimeout: time.Hour,
+		ReadTimeout:  time.Hour}
 	log.Printf("listening on %s", serverAddress())
-	log.Fatal(srv.ListenAndServe())
+	go srv.ListenAndServe()
+	waitUntilKilled()
+}
+
+/* block the current go rountine until a signal is received to shut down the
+ * process. To be used from the main goroutine */
+func waitUntilKilled() {
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+	fmt.Fprint(os.Stderr, <-ch, "\n")
+	fmt.Fprint(os.Stderr, "Caught signal for shutdown\n")
 }
 
 func serverAddress() string {
@@ -171,10 +188,11 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseMultipartForm(maxUpload)
+	r.ParseMultipartForm(maxMemory)
 	file, handler, err := r.FormFile("f")
 	if err != nil {
-		templates.WriteError(w, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	defer file.Close()
