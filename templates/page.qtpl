@@ -30,34 +30,26 @@ Pager {
   <![endif]-->
 </head>
 <body>
-<nav class="navbar navbar-inverse">
-  <div class="container">
-    <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed"
-                  data-toggle="collapse" data-target="#navbar"
-                  aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/members">{%= p.Header() %}</a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-          </ul>
-        </div><!--/.nav-collapse -->
+  <nav class="navbar navbar-inverse">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed"
+                data-toggle="collapse" data-target="#navbar"
+                aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">{%= p.Header() %}</a>
       </div>
-    </nav>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </nav>
 
-<!--
-  <ul>
-      <li><a href="/members">Members</a></li>
-      <li><a href="/drugs/search">Drug Info</a></li>
-      <li><a href="/pharmacies">Pharmacy Lookup</a></li>
-      <li><a href="/logout">Logout</a></li>
-  </ul>
-  -->
   {%= p.Body() %}
   {%= JQuery() %}
   <script src="https://code.jquery.com/jquery-2.2.4.min.js"
@@ -66,7 +58,7 @@ Pager {
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" 
           integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
           crossorigin="anonymous"></script>
-   {%= p.JavaScript() %}
+  {%= p.JavaScript() %}
 </body>
 </html>
 {% endfunc %}

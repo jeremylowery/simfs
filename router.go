@@ -2,8 +2,11 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
+	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -30,6 +33,10 @@ type roContextKey string
 var readOnlyUser = os.Getenv("ROUSER")
 var readWriteUser = os.Getenv("RWUSER")
 var roContext = roContextKey("ReadOnly")
+var userContext = roContextKey("Username")
+var authDBFile = os.Getenv("AUTHDBFILE")
+var logFile = os.Getenv("LOGFILE")
+
 var fileRE *regexp.Regexp
 var pubDir string
 
@@ -91,6 +98,7 @@ func init() {
 	}
 
 	fileRE = regexp.MustCompile("^\\.")
+
 }
 
 func main() {
@@ -250,7 +258,8 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// If no environmental configuration is set, we serve up the directory
 		// as read only by default
-		if readOnlyUser == "" && readWriteUser == "" {
+		logRequest(r)
+		if readOnlyUser == "" && readWriteUser == "" && authDBFile == "" {
 			ctx := context.WithValue(r.Context(), roContext, true)
 			h.ServeHTTP(w, r.WithContext(ctx))
 			return
@@ -287,8 +296,104 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		if authDBFile != "" {
+			err, readOnly := fileAuthenticate(pair[0], pair[1])
+			if err == nil {
+				ctx := context.WithValue(r.Context(), roContext, readOnly)
+				h.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+		}
 		http.Error(w, "Not authorized", 401)
 	}
+}
+
+func logRequest(r *http.Request) {
+	if logFile == "" {
+		return
+	}
+	username, _ := requestCredentials(r)
+	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+	var path string
+	if r.URL.Path == "/upload" {
+		_, handler, _ := r.FormFile("f")
+		path = fmt.Sprintf("/upload/%s", handler.Filename)
+	} else {
+		path = r.URL.Path
+	}
+	t := time.Now()
+	fmt.Fprintf(f, "%-35s %-21s %-20s %s\n",
+		t.Format("2006-01-02 15:04:05.999999999 -0700 MST"), r.RemoteAddr, username, path)
+	f.Close()
+
+}
+
+func requestCredentials(r *http.Request) (username string, password string) {
+	s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+	if len(s) != 2 {
+		return
+	}
+
+	b, err := base64.StdEncoding.DecodeString(s[1])
+	if err != nil {
+		return
+	}
+
+	pair := strings.SplitN(string(b), ":", 2)
+	if len(pair) != 2 {
+		return
+	}
+	return pair[0], pair[1]
+
+}
+
+func logUserLogin(username string, ip string) {
+	if logFile == "" {
+		return
+	}
+	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+	t := time.Now()
+	fmt.Fprintf(f, "%s %-21s %s login\n",
+		t.Format("2006-01-02 15:04:05.999999999 -0700 MST"), ip, username)
+	f.Close()
+
+}
+
+// Authenticate against the csv file If err is nil then authentication
+// successful
+func fileAuthenticate(username string, password string) (err error, readOnly bool) {
+	f, err := os.Open(authDBFile)
+	if err != nil {
+		return
+	}
+
+	r := csv.NewReader(bufio.NewReader(f))
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if len(record) < 3 {
+			continue
+		}
+		if username != record[0] {
+			continue
+		}
+		if password != record[1] {
+			continue
+		}
+		readOnly = record[2] == "Y" || record[2] == "y"
+		return nil, readOnly
+	}
+
+	err = errors.New("Invalid username or password")
+	return
 }
 
 // Is this request read only? type-safe context value

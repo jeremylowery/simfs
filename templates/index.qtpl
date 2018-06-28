@@ -6,19 +6,19 @@ type FileInfo struct {
     Size string
 }
 
-  type IndexPage struct {
-    Path string
-    Files []FileInfo
-    ShowUploadForm bool
-  }
+type IndexPage struct {
+  Path string
+  Files []FileInfo
+  ShowUploadForm bool
+}
 %}
 
 {% func (p *IndexPage) Title() %}
-    {%s p.Path %} {%d len(p.Files)%} Files
+  {%s p.Path %} {%d len(p.Files)%} Files
 {% endfunc %}
 
 {% func (p *IndexPage) Header() %}
-    <i class="fa fa-folder-open-o" aria-hidden="true"></i> {%s p.Path %} {%d len(p.Files)%} Files
+  <i class="fa fa-folder-open-o" aria-hidden="true"></i> {%s p.Path %} {%d len(p.Files)%} Files
 {% endfunc %}
 
 {% func (p *IndexPage) Body() %}
